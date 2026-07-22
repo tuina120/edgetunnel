@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "_worker.js"
+      - "worker.sunran.js"
       - "wrangler.sunran.toml"
       - ".github/workflows/deploy-sunran.yml"
   schedule:
