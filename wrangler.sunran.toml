@@ -1,5 +1,5 @@
 name = "cmvl-sunran-edgetunnel"
-main = "_worker.js"
+main = "worker.sunran.js"
 compatibility_date = "2026-07-22"
 account_id = "e9a4c4a74b620f79ede0284b84edc58f"
 workers_dev = false
