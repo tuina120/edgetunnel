@@ -1,0 +1,14 @@
+name = "cmvl-sunran-edgetunnel"
+main = "_worker.js"
+compatibility_date = "2026-07-22"
+account_id = "e9a4c4a74b620f79ede0284b84edc58f"
+workers_dev = false
+keep_vars = true
+
+routes = [
+  { pattern = "cmvl.sunran.com.cn/*", zone_name = "sunran.com.cn" }
+]
+
+[[kv_namespaces]]
+binding = "KV"
+id = "ae4350c07651401f8d210c5dcb43084e"
