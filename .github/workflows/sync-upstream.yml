@@ -1,1 +1,48 @@
-name: Sync upstream\n\non:\n  schedule:\n    - cron: "17 3 * * *"\n  workflow_dispatch:\n\npermissions:\n  contents: write\n\njobs:\n  sync:\n    runs-on: ubuntu-latest\n    steps:\n      - name: Checkout fork\n        uses: actions/checkout@v4\n        with:\n          fetch-depth: 0\n          token: ${{ secrets.GITHUB_TOKEN }}\n      - name: Sync upstream main\n        run: |\n          git remote add upstream https://github.com/cmliu/edgetunnel.git\n          git fetch upstream main\n          git checkout main\n          git merge --no-edit -X ours upstream/main || true\n          git config user.name "github-actions[bot]"\n          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"\n          if [ -f wrangler.toml ]; then\n            sed -i "s/^name = .*/name = \"cmvl\"/" wrangler.toml\n            git add wrangler.toml\n            git diff --cached --quiet || git commit -m "chore: keep Cloudflare Worker name cmvl"\n          fi\n          git push origin main\n
+name: Sync upstream
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sync upstream main and keep cmvl config
+        run: |
+          set -euo pipefail
+          git remote add upstream https://github.com/cmliu/edgetunnel.git || true
+          git fetch upstream main
+          git checkout main
+          git merge --no-edit -X ours upstream/main || true
+          cat > wrangler.toml <<'EOF'
+          name = "cmvl-edgetunnel"
+          main = "_worker.js"
+          compatibility_date = "2026-07-22"
+          account_id = "c7cbc7b3c716ca9929d73cd227290fd0"
+          workers_dev = false
+          keep_vars = true
+
+          routes = [
+            { pattern = "cmvl.qxyx.net/*", zone_name = "qxyx.net" }
+          ]
+
+          [[kv_namespaces]]
+          binding = "KV"
+          id = "671db6d7bcd7460eb0640e59bb7c0e69"
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add _worker.js wrangler.toml CHANGELOG README.md LICENSE
+          git diff --cached --quiet || git commit -m "chore: sync upstream and keep cmvl deployment config"
+          git push origin main

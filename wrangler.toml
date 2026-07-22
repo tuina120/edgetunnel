@@ -1,7 +1,14 @@
-name = "cmvl"
+name = "cmvl-edgetunnel"
 main = "_worker.js"
-compatibility_date = "2025-11-04"
+compatibility_date = "2026-07-22"
+account_id = "c7cbc7b3c716ca9929d73cd227290fd0"
+workers_dev = false
 keep_vars = true
-#[[kv_namespaces]]
-#binding = "KV" #KV绑定名默认不可修改
-#id = "" #KV数据库id
+
+routes = [
+  { pattern = "cmvl.qxyx.net/*", zone_name = "qxyx.net" }
+]
+
+[[kv_namespaces]]
+binding = "KV"
+id = "671db6d7bcd7460eb0640e59bb7c0e69"

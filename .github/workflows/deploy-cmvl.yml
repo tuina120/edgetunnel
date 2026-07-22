@@ -1,0 +1,54 @@
+name: Deploy cmvl edgetunnel
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "_worker.js"
+      - "wrangler.toml"
+      - ".github/workflows/deploy-cmvl.yml"
+  schedule:
+    - cron: "47 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cmvl-edgetunnel-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Wrangler
+        run: npm install --no-save wrangler@latest
+
+      - name: Keep Worker secrets in sync
+        env:
+          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          EDGE_UUID: ${{ secrets.EDGE_UUID }}
+          EDGE_ADMIN: ${{ secrets.EDGE_ADMIN }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$EDGE_UUID" | npx wrangler secret put UUID --config wrangler.toml
+          printf '%s' "$EDGE_ADMIN" | npx wrangler secret put ADMIN --config wrangler.toml
+
+      - name: Deploy Worker
+        env:
+          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy --config wrangler.toml
